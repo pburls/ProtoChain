@@ -64,6 +64,8 @@ namespace Server
                             nodeListManager.AddNodeToList(remoteIpEndPoint.Address);
                         }
 
+                        Console.WriteLine(nodeListManager.ToString());
+
                         break;
                     default:
                         break;
