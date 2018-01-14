@@ -90,8 +90,9 @@ namespace ProtoChain.TestApp
                     peer.Connect();
                     var nodeList = peer.GetNodeList();
                     nodeListManager.SyncNodeList(nodeList);
+                    Console.WriteLine(nodeListManager.ToString());
 
-                    Console.WriteLine($"Sent data to peer with IP: '{peerIPAddress.ToString()}'");
+                    Console.WriteLine($"Finished syncing with peer: '{peerIPAddress.ToString()}'");
                 }
                 catch (Exception ex)
                 {

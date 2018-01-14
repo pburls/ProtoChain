@@ -59,5 +59,18 @@ namespace ProtoChain.TestApp.Managers
 
             return splitValues.All(r => byte.TryParse(r, out tempForParsing));
         }
+
+        public override string ToString()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("--Node List--");
+            sb.AppendLine("-------------");
+            foreach (var node in NodeList)
+            {
+                sb.AppendLine(node);
+            }
+            sb.AppendLine("-------------");
+            return sb.ToString();
+        }
     }
 }
