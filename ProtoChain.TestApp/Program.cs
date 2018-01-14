@@ -4,6 +4,7 @@ using log4net.Config;
 using log4net.Core;
 using log4net.Layout;
 using log4net.Repository.Hierarchy;
+using ProtoChain.TestApp.Managers;
 using Server;
 using System;
 using System.Collections.Generic;
@@ -17,6 +18,7 @@ namespace ProtoChain.TestApp
     class Program
     {
         private static List<Peer> peerList = new List<Peer>();
+        private static readonly NodeListManager nodeListManager = new NodeListManager();
 
         //static void Main(string[] args)
         //{
@@ -37,6 +39,12 @@ namespace ProtoChain.TestApp
             var maxConnections = 5;
             var statusInterval = 10;
             var logFile = "numbers.log";
+
+            var localAddresses = Dns.GetHostAddresses(Dns.GetHostName());
+            foreach (var localAddress in localAddresses)
+            {
+                nodeListManager.AddNodeToList(localAddress);
+            }
 
             Run(port, maxConnections, statusInterval, logFile);
         }
@@ -59,7 +67,7 @@ namespace ProtoChain.TestApp
             // Create and run application, which does all the real work.
             _app = new Application(
                 port, maxConnections, statusInterval,
-                Path.Combine(Directory.GetCurrentDirectory(), logFile));
+                Path.Combine(Directory.GetCurrentDirectory(), logFile), nodeListManager);
             _app.Run(TerminateCommandReceived);
 
             Console.CancelKeyPress += delegate {
@@ -77,10 +85,12 @@ namespace ProtoChain.TestApp
                 try
                 {
                     Console.WriteLine($"Trying to connect to peer with IP: '{peerIPAddress.ToString()}'");
-                    var peer = new Peer(IPAddress.Parse("192.168.0.29"));
+                    var peer = new Peer(peerIPAddress);
 
                     peer.Connect();
-                    peer.SendData(1, false);
+                    var nodeList = peer.GetNodeList();
+                    nodeListManager.SyncNodeList(nodeList);
+
                     Console.WriteLine($"Sent data to peer with IP: '{peerIPAddress.ToString()}'");
                 }
                 catch (Exception ex)

@@ -1,6 +1,7 @@
 ﻿using ProtoChain.TestApp.Managers;
 using ProtoChain.TestApp.Utils;
 using System;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
@@ -45,6 +46,7 @@ namespace Server
             while ((bytesRead = TryReadChunk(buffer)) == _headerSize)
             {
                 string commandText = Encoding.UTF8.GetString(buffer);
+                Console.WriteLine($"Command '{commandText}' received");
                 switch (commandText)
                 {
                     case "GNDS":
@@ -53,6 +55,15 @@ namespace Server
                         _socketConnection.Send(BitConverter.GetBytes(bytesToSend.Length));
                         _socketConnection.Send(bytesToSend);
                         _socketConnection.Send(endBytes);
+                        Console.WriteLine($"Sent nodelist.");
+
+                        //add this requester to my node list
+                        IPEndPoint remoteIpEndPoint = _socketConnection.RemoteEndPoint as IPEndPoint;
+                        if (remoteIpEndPoint != null)
+                        {
+                            nodeListManager.AddNodeToList(remoteIpEndPoint.Address);
+                        }
+
                         break;
                     default:
                         break;

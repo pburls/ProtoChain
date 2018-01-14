@@ -10,21 +10,13 @@ namespace Server
     {
         private readonly int _statusInterval;
         private readonly LocalhostSocketListener _listener;
-        private readonly NodeListManager nodeListManager;
+        private readonly NodeListManager _nodeListManager;
 
-        public Application(int port, int maxConnections, int statusInterval, string logFilePath)
+        public Application(int port, int maxConnections, int statusInterval, string logFilePath, NodeListManager nodeListManager)
         {
             _statusInterval = statusInterval;
-            
             _listener = new LocalhostSocketListener(port, maxConnections);
-
-            nodeListManager = new NodeListManager();
-
-            var localAddresses = Dns.GetHostAddresses(Dns.GetHostName());
-            foreach(var localAddress in localAddresses)
-            {
-                nodeListManager.AddNodeToList(localAddress);
-            }
+            _nodeListManager = nodeListManager;
         }
 
         public void Run(Action terminationCallback = null)
@@ -37,7 +29,7 @@ namespace Server
                 // Socket stream reader will call back when a valid value is read
                 // and/or when a terminate command is received.
                 var reader = new SocketStreamReader(socket);
-                reader.Handle(nodeListManager);
+                reader.Handle(_nodeListManager);
             });
         }
 

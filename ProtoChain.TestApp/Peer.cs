@@ -4,13 +4,14 @@ using System.Net;
 using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
+using ProtoChain.TestApp.Utils;
 
 namespace ProtoChain.TestApp
 {
     public class Peer
     {
         private Socket _socket;
-        private bool _exitSignal;
+        private static byte[] endBytes = { 0x0 };
 
         public IPAddress IPAddress { get; private set; }
         public int Port { get; private set; }
@@ -46,52 +47,57 @@ namespace ProtoChain.TestApp
             _socket.Dispose();
         }
 
-        public void SendData(int numberToSend, bool terminate)
+        public string[] GetNodeList()
         {
-            var rng = RandomNumberGenerator.Create();
-            int count = 0;
-            var bytes = new byte[4];
-            uint value = 0;
-
-            while (!_exitSignal && count++ < numberToSend)
+            try
             {
-                rng.GetBytes(bytes);
-                value = BitConverter.ToUInt32(bytes, 0);
-                try
+                //send command
+                _socket.Send(Encoding.UTF8.GetBytes("GNDS"));
+                Console.WriteLine($"Sent 'GetNodeList' command");
+
+                //receive payload length
+                var lengthBytes = new byte[4];
+                var bytesRead = _socket.Receive(lengthBytes);
+                if (bytesRead < lengthBytes.Length)
                 {
-                    _socket.Send(Encoding.ASCII.GetBytes(ToPaddedString(value) + Environment.NewLine));
-                }
-                catch (SocketException)
-                {
-                    Console.WriteLine("Socket connection forcibly closed.");
-                    break;
+                    Console.WriteLine($"failed to recieve payload length");
+                    return null;
                 }
 
-                if (count % 100000 == 0)
+                var payloadLength = BitConverter.ToInt32(lengthBytes, 0);
+
+                //create payload buffer from length
+                var payloadBuffer = new byte[payloadLength];
+                bytesRead = _socket.Receive(payloadBuffer);
+                if (bytesRead < payloadLength)
                 {
-                    Console.WriteLine($"{count} values sent.");
+                    Console.WriteLine($"failed to read payload");
+                    return null;
                 }
-            }
 
-            if (!_exitSignal && terminate)
-            {
-                _socket.Send(Encoding.ASCII.GetBytes("terminate" + Environment.NewLine));
-                Console.WriteLine($"Terminate command sent.");
-            }
-        }
+                //check that we got end byte
+                var endBuffer = new byte[1];
+                bytesRead = _socket.Receive(endBuffer);
+                if (bytesRead < endBuffer.Length)
+                {
+                    Console.WriteLine($"failed to read end bytes");
+                    return null;
+                }
 
-        private static string ToPaddedString(uint value)
-        {
-            var str = value.ToString();
-            if (str.Length > 9)
-            {
-                str = str.Substring(0, 9);
+                if (endBuffer[0] != endBytes[0])
+                {
+                    Console.WriteLine($"end byte incorrect");
+                    return null;
+                }
+
+                //deserialise the payload
+                return payloadBuffer.FromByteArray();
             }
-            else if (str.Length < 9)
+            catch (SocketException)
             {
-                str = (new String('0', 9 - str.Length)) + str;
+                Console.WriteLine("Socket connection forcibly closed.");
+                return null;
             }
-            return str;
         }
     }
 }
