@@ -77,7 +77,7 @@ namespace Server
         private void BindAndListen(Action<Socket> newSocketConnectionCallback)
         {
             _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            _socket.Bind(new IPEndPoint(IPAddress.Loopback, _port));
+            _socket.Bind(new IPEndPoint(IPAddress.Any, _port));
             _socket.Listen(_maxConnections);
 
             _log.Info($"Listening for socket connections on port {_port}...");
