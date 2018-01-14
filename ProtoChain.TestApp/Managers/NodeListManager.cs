@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 
 namespace ProtoChain.TestApp.Managers
@@ -34,7 +35,12 @@ namespace ProtoChain.TestApp.Managers
             {
                 NodeList.Add(IPV4Address);
             }
-                    }
+        }
+
+        public void AddNodeToList(IPAddress ipAddress)
+        {
+            AddNodeToList(ipAddress.ToString());
+        }
 
         private bool ValidateIPv4(string ipString)
         {

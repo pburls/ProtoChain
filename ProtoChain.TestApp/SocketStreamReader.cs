@@ -1,4 +1,6 @@
-﻿using System;
+﻿using ProtoChain.TestApp.Managers;
+using ProtoChain.TestApp.Utils;
+using System;
 using System.Net.Sockets;
 using System.Text;
 
@@ -24,46 +26,37 @@ namespace Server
     /// </remarks>
     public class SocketStreamReader
     {
-        public static int ValueSize => 9;
-        public static byte[] NewLineSequence => Encoding.ASCII.GetBytes(Environment.NewLine);
-        public static int NewLineSize => NewLineSequence.Length;
-        public static int ChunkSize => ValueSize + NewLineSize;
+        private int _headerSize = 4;
+        private static byte[] endBytes = { 0x0 };
 
-        private static readonly string _terminateSequence = "terminate" + Environment.NewLine;
+        private readonly Socket _socketConnection;
 
-        private readonly ISocketConnectionProxy _socketConnection;
-
-        public SocketStreamReader(Socket socket) : this(new SocketConnectionProxy(socket))
+        public SocketStreamReader(Socket socket)
         {
-        }
-        public SocketStreamReader(ISocketConnectionProxy socketConnection)
-        {
-            _socketConnection = socketConnection;
+            _socketConnection = socket;
         }
 
-        public void Read(Action<int> valueReadCallback, Action terminationCallback = null)
+        public void Handle(NodeListManager nodeListManager)
         {
-            var buffer = new byte[ChunkSize];
             int bytesRead;
 
-            // Read data in blocks of known chunk size.
-            while ((bytesRead = TryReadChunk(buffer)) == ChunkSize)
+            // Read 4 byte header
+            var buffer = new byte[_headerSize];
+            while ((bytesRead = TryReadChunk(buffer)) == _headerSize)
             {
-                // Convert to 32-bit int. If not valid number, we're done.
-                if (!TryConvertToInt32(buffer, out int value))
+                string commandText = Encoding.UTF8.GetString(buffer);
+                switch (commandText)
                 {
-                    // Check for terminate command. If found, invoke callback
-                    // so caller can act on it.
-                    if (IsTerminateSequence(buffer))
-                    {
-                        terminationCallback?.Invoke();
+                    case "GNDS":
+                        var bytesToSend = nodeListManager.GetNodeList().ToByteArray();
+                        //send payload length
+                        _socketConnection.Send(BitConverter.GetBytes(bytesToSend.Length));
+                        _socketConnection.Send(bytesToSend);
+                        _socketConnection.Send(endBytes);
                         break;
-                    }
-                    break;
+                    default:
+                        break;
                 }
-
-                // When we get a good value, invoke callback so value can be processed.
-                valueReadCallback?.Invoke(value);
             }
         }
 
@@ -78,7 +71,7 @@ namespace Server
             int bufferOffset = 0;
             while (bufferOffset < buffer.Length)
             {
-                bytesRead = _socketConnection.Receive(buffer, bufferOffset, buffer.Length - bufferOffset);
+                bytesRead = _socketConnection.Receive(buffer, bufferOffset, buffer.Length - bufferOffset, SocketFlags.None);
                 if (bytesRead == 0)
                 {
                     break;
@@ -86,48 +79,6 @@ namespace Server
                 bufferOffset += bytesRead;
             }
             return bufferOffset;
-        }
-
-        private bool TryConvertToInt32(byte[] buffer, out int value)
-        {
-            value = 0;
-
-            // Make sure chunk correctly terminates with new line sequence.
-            // Loop here to support Windows with two-byte sequence.
-            for (var i = 0; i < NewLineSize; i++)
-            {
-                if (buffer[ValueSize + i] != NewLineSequence[i])
-                {
-                    return false;
-                }
-            }
-
-            // Read through first 9 bytes and look for numeric digit. Use
-            // the proper multiplier for its place and construct the numeric value.
-            // If we find a non-numeric char, we short-circuit and return false.
-            byte b;
-            int place;
-            for (var i = 0; i < ValueSize; i++)
-            {
-                b = buffer[i];
-                if (b < 48 || b > 57)
-                {
-                    return false;
-                }
-                place = (int)Math.Pow(10, ValueSize - i - 1);
-                value += ((b - 48) * place);
-            }
-            return true;
-        }
-
-        private bool IsTerminateSequence(byte[] buffer)
-        {
-            if (buffer[0] == 84 || buffer[0] == 116) // Check first byte before transforming to string.
-            {
-                return Encoding.ASCII.GetString(buffer)
-                    .Equals(_terminateSequence, StringComparison.OrdinalIgnoreCase);
-            }
-            return false;
         }
     }
 }
