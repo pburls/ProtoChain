@@ -68,10 +68,27 @@ namespace ProtoChain.TestApp
                 _exitSignal.Set();
             };
 
-            var peer = new Peer(IPAddress.Parse("192.168.0.29"));
 
-            peer.Connect();
-            peer.SendData(1, false);
+            //Get peers from a DNS
+            var ipAddresses = Dns.GetHostAddresses("protochain.org");
+
+            foreach (var peerIPAddress in ipAddresses)
+            {
+                try
+                {
+                    Console.WriteLine($"Trying to connect to peer with IP: '{peerIPAddress.ToString()}'");
+                    var peer = new Peer(IPAddress.Parse("192.168.0.29"));
+
+                    peer.Connect();
+                    peer.SendData(1, false);
+                    Console.WriteLine($"Sent data to peer with IP: '{peerIPAddress.ToString()}'");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"An error occurred while trying to connect to peer with IP: '{peerIPAddress.ToString()}'");
+                }
+                
+            }
 
             // Block on exit signal to keep process running until exit event encountered
             _exitSignal.Wait();

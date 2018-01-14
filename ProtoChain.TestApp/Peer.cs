@@ -28,7 +28,7 @@ namespace ProtoChain.TestApp
             _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             try
             {
-                _socket.Connect(new IPEndPoint(IPAddress.Loopback, Port));
+                _socket.Connect(new IPEndPoint(IPAddress, Port));
             }
             catch (SocketException)
             {
