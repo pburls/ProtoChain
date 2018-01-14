@@ -4,13 +4,11 @@ using log4net.Config;
 using log4net.Core;
 using log4net.Layout;
 using log4net.Repository.Hierarchy;
-using Microsoft.Extensions.CommandLineUtils;
 using Server;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using System.Net.Sockets;
 using System.Reflection;
 using System.Threading;
 
@@ -18,7 +16,7 @@ namespace ProtoChain.TestApp
 {
     class Program
     {
-        private static List<EndPoint> peerList = new List<EndPoint>();
+        private static List<Peer> peerList = new List<Peer>();
 
         //static void Main(string[] args)
         //{
@@ -40,28 +38,7 @@ namespace ProtoChain.TestApp
             var statusInterval = 10;
             var logFile = "numbers.log";
 
-            var cmd = new CommandLineApplication()
-            {
-                FullName = "A socket server which will log 9-digit numbers that are sent to it.",
-                Name = "dotnet run --"
-            };
-            var portOption = cmd.Option("-p|--port <port>", $"The port on which the server should run. Default: {port}", CommandOptionType.SingleValue);
-            var maxConnectionsOption = cmd.Option("-m|--max <max>", $"The maximum number of socket connections the server should allow. Default: {maxConnections}", CommandOptionType.SingleValue);
-            var statusIntervalOption = cmd.Option("-s|--status <interval>", $"The number of seconds between each status report. Default: {statusInterval}", CommandOptionType.SingleValue);
-            var logFileOption = cmd.Option("-l|--log <filePath>", $"The path to which value should be logged. Default: {logFile} in the working dir", CommandOptionType.SingleValue);
-            cmd.HelpOption("-?|-h|--help");
-            cmd.OnExecute(() =>
-            {
-                if (portOption.HasValue()) port = int.Parse(portOption.Value());
-                if (maxConnectionsOption.HasValue()) maxConnections = int.Parse(maxConnectionsOption.Value());
-                if (statusIntervalOption.HasValue()) statusInterval = int.Parse(statusIntervalOption.Value());
-                if (logFileOption.HasValue()) logFile = logFileOption.Value();
-
-                Run(port, maxConnections, statusInterval, logFile);
-
-                return 0;
-            });
-            cmd.Execute(args);
+            Run(port, maxConnections, statusInterval, logFile);
         }
 
         private static void ConfigureLogging(Level level)
@@ -90,6 +67,11 @@ namespace ProtoChain.TestApp
                 StopServer();
                 _exitSignal.Set();
             };
+
+            var peer = new Peer(IPAddress.Parse("192.168.0.29"));
+
+            peer.Connect();
+            peer.SendData(1, false);
 
             // Block on exit signal to keep process running until exit event encountered
             _exitSignal.Wait();
