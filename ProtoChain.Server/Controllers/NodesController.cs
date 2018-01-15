@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Net;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using ProtoChain.Network;
 
 namespace ProtoChain.Server.Controllers
@@ -11,10 +12,12 @@ namespace ProtoChain.Server.Controllers
     public class NodesController : Controller
     {
         private readonly INodeListManager _nodeListManager;
+        private readonly ILogger<NodesController> _logger;
 
-        public NodesController(INodeListManager nodeListManager)
+        public NodesController(INodeListManager nodeListManager, ILogger<NodesController> logger)
         {
             _nodeListManager = nodeListManager;
+            _logger = logger;
         }
 
         [HttpGet]

@@ -20,9 +20,10 @@ namespace ProtoChain.Server
         {
             //Create the node list
             _nodeListManager = new NodeListManager();
-            _nodeListManager.AddNodes(NodeDiscovery.GetLocalIPAddresses());
+            //_nodeListManager.AddNodes(NodeDiscovery.GetLocalIPAddresses());
             _nodeListManager.AddNodes(NodeDiscovery.GetDNSIPAddresses("protochain.org"));
 
+            //Start accepting API messages
             BuildWebHost(args).Run();
         }
 
