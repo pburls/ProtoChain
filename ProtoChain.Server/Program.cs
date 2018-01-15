@@ -14,10 +14,15 @@ namespace ProtoChain.Server
 {
     public class Program
     {
-        private static NodeListManager _nodeListManager = new NodeListManager();
+        private static NodeListManager _nodeListManager;
 
         public static void Main(string[] args)
         {
+            //Create the node list
+            _nodeListManager = new NodeListManager();
+            _nodeListManager.AddNodes(NodeDiscovery.GetLocalIPAddresses());
+            _nodeListManager.AddNodes(NodeDiscovery.GetDNSIPAddresses("protochain.org"));
+
             BuildWebHost(args).Run();
         }
 

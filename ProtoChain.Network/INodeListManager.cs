@@ -1,9 +1,12 @@
-﻿namespace ProtoChain.Network
+﻿using System.Collections.Generic;
+using System.Net;
+
+namespace ProtoChain.Network
 {
     public interface INodeListManager
     {
-        void AddNodeToList(string IPV4Address);
-        string[] GetNodeList();
-        void SyncNodeList(string[] NodeAddressList);
+        void AddNode(IPAddress ipAddress);
+        IEnumerable<IPAddress> GetNodes();
+        void AddNodes(IEnumerable<IPAddress> addressList);
     }
 }

@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using ProtoChain.Network;
 
@@ -18,7 +20,8 @@ namespace ProtoChain.Server.Controllers
         [HttpGet]
         public IEnumerable<string> GetAll()
         {
-            return _nodeListManager.GetNodeList();
+            _nodeListManager.AddNode(Request.HttpContext.Connection.RemoteIpAddress);
+            return _nodeListManager.GetNodes().Select(ip => ip.ToString());
         }
     }
 }

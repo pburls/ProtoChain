@@ -1,57 +1,40 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
 using System.Text;
 
 namespace ProtoChain.Network
 {
     public class NodeListManager : INodeListManager
     {
-        private List<string> NodeList { get; set; }
+        private HashSet<IPAddress> UniqueAddresses { get; set; }
 
         public NodeListManager()
         {
-            NodeList = new List<string>();
+            UniqueAddresses = new HashSet<IPAddress>();
         }
 
-        public string[] GetNodeList()
+        public IEnumerable<IPAddress> GetNodes()
         {
-            return NodeList.ToArray();
+            return UniqueAddresses;
         }
 
-
-        public void SyncNodeList(string[] NodeAddressList)
+        public void AddNodes(IEnumerable<IPAddress> addressList)
         {
-            foreach (var nodeAddress in NodeAddressList)
+            foreach (var nodeAddress in addressList)
             {
-                AddNodeToList(nodeAddress);
+                AddNode(nodeAddress);
             }
         }
 
-        public void AddNodeToList(string IPV4Address)
+        public void AddNode(IPAddress ipAddress)
         {
-            if (ValidateIPv4(IPV4Address) && !NodeList.Contains(IPV4Address))
+            if (ipAddress.AddressFamily == AddressFamily.InterNetwork)
             {
-                NodeList.Add(IPV4Address);
+                UniqueAddresses.Add(ipAddress);
             }
-        }
-
-        private bool ValidateIPv4(string ipString)
-        {
-            if (String.IsNullOrWhiteSpace(ipString))
-            {
-                return false;
-            }
-
-            string[] splitValues = ipString.Split('.');
-            if (splitValues.Length != 4)
-            {
-                return false;
-            }
-
-            byte tempForParsing;
-
-            return splitValues.All(r => byte.TryParse(r, out tempForParsing));
         }
 
         public override string ToString()
@@ -59,9 +42,9 @@ namespace ProtoChain.Network
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("--Node List--");
             sb.AppendLine("-------------");
-            foreach (var node in NodeList)
+            foreach (var node in UniqueAddresses)
             {
-                sb.AppendLine(node);
+                sb.AppendLine(node.ToString());
             }
             sb.AppendLine("-------------");
             return sb.ToString();
