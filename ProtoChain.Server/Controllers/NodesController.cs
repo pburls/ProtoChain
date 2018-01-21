@@ -23,7 +23,7 @@ namespace ProtoChain.Server.Controllers
         [HttpGet]
         public IEnumerable<string> GetAll()
         {
-            _nodeListManager.AddNode(Request.HttpContext.Connection.RemoteIpAddress);
+            //_nodeListManager.AddNode(Request.HttpContext.Connection.RemoteIpAddress);
             return _nodeListManager.GetNodes().Select(ip => ip.ToString());
         }
     }

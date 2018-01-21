@@ -10,9 +10,9 @@ namespace ProtoChain.Client
     public class ProtoChainNodeClient : IProtoChainNodeClient
     {
         private HttpClient httpClient;
-        private readonly ILogger<ProtoChainNodeClient> _logger;
+        private readonly ILogger _logger;
 
-        public ProtoChainNodeClient(IPAddress ipAddress, int port, ILogger<ProtoChainNodeClient> logger)
+        public ProtoChainNodeClient(IPAddress ipAddress, int port, ILogger logger)
         {
             _logger = logger;
 
