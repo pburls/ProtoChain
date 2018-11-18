@@ -22,6 +22,8 @@ namespace ProtoChain.Network
             //Get the master nodes from the DNS
             var dnsIPAddresses = await Dns.GetHostAddressesAsync("protochain.org");
 
+            //Try register local instance with master
+
             //Ask each DNS node for it's node list
             var getNodesTasks = new List<Task<IEnumerable<string>>>();
             foreach (var ipAddress in dnsIPAddresses)

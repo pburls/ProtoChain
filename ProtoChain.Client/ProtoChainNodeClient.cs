@@ -23,10 +23,19 @@ namespace ProtoChain.Client
 
         public async Task<IEnumerable<string>> GetNodes()
         {
-            _logger.LogInformation("Requesting GetNodes from node {address}", httpClient.BaseAddress);
+            _logger.LogInformation("Requesting GetNodes from node: {address}", httpClient.BaseAddress);
             using (var result = await httpClient.GetAsync("api/nodes"))
             {
                 return await result.Content.ReadAsAsync<IEnumerable<string>>();
+            }
+        }
+
+        public async Task<bool> PutNode()
+        {
+            _logger.LogInformation("Add this local node to peer: {address}", httpClient.BaseAddress);
+            using (var result = await httpClient.PostAsync("api/nodes", null))
+            {
+                return result.IsSuccessStatusCode;
             }
         }
 

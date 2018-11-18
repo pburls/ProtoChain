@@ -26,5 +26,12 @@ namespace ProtoChain.Server.Controllers
             //_nodeListManager.AddNode(Request.HttpContext.Connection.RemoteIpAddress);
             return _nodeListManager.GetNodes().Select(ip => ip.ToString());
         }
+
+        [HttpPost]
+        public IActionResult PostNode()
+        {
+            _nodeListManager.AddNode(Request.HttpContext.Connection.RemoteIpAddress);
+            return Ok();
+        }
     }
 }
